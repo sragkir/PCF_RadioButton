@@ -39,6 +39,10 @@ export class RadioOptionSet implements ComponentFramework.StandardControl<IInput
    */
   public updateView(context: ComponentFramework.Context<IInputs>): void {
     this.contextObj = context;
+    let displayMode = "horizontal";
+    if(this.contextObj.parameters.displayMode.raw !== null) {
+      displayMode = this.contextObj.parameters.displayMode.raw!
+    }
     ReactDOM.render(
       React.createElement(RadioOptionSetControl, {
         choices: this.contextObj.parameters.OptionsetColumn.attributes?.Options,
@@ -47,7 +51,7 @@ export class RadioOptionSet implements ComponentFramework.StandardControl<IInput
         isDisabled: false,
         notifyChange: this.onChange,
         theme: "webLightTheme",
-        mode: this.contextObj.parameters.displayMode.raw,
+        mode: displayMode,
       } as IRadioOptionSetProps),
       this.containerObj
     );
