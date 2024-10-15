@@ -1,18 +1,21 @@
-import * as ReactDOM from "react-dom";
 import { IInputs, IOutputs } from "./generated/ManifestTypes";
 import * as React from "react";
 import { IRadioOptionSetProps, RadioOptionSetControl } from "./RadioOptionSetControl";
+import { createRoot, Root } from 'react-dom/client';
 
 export class RadioOptionSet implements ComponentFramework.StandardControl<IInputs, IOutputs> {
   /**
    * Empty constructor.
    */
-  constructor() {}
+  constructor() { }
 
   private contextObj: ComponentFramework.Context<IInputs>;
   private containerObj: HTMLDivElement;
   private selected: number | null;
+  private root: Root | null = null;
   private outputChanged: () => void;
+  private lockField: boolean = false;
+  private isFirstTimeLoad: boolean = false;
 
   /**
    * Used to initialize the control instance. Controls can kick off remote server calls and other initialization actions here.
@@ -27,6 +30,11 @@ export class RadioOptionSet implements ComponentFramework.StandardControl<IInput
     this.containerObj = container;
     this.outputChanged = notifyOutputChanged;
     this.onChange = this.onChange.bind(this);
+
+    if (this.contextObj.parameters.lockField.raw.toLowerCase() === "true" && this.contextObj.parameters.OptionsetColumn.raw !== null) {
+      this.lockField = true;
+    }
+    this.isFirstTimeLoad = true;
   }
   protected onChange = (selectedOptionsOut: number | null) => {
     this.selected = selectedOptionsOut;
@@ -40,21 +48,40 @@ export class RadioOptionSet implements ComponentFramework.StandardControl<IInput
   public updateView(context: ComponentFramework.Context<IInputs>): void {
     this.contextObj = context;
     let displayMode = "horizontal";
-    if(this.contextObj.parameters.displayMode.raw !== null) {
+    if (this.contextObj.parameters.displayMode.raw !== null) {
       displayMode = this.contextObj.parameters.displayMode.raw!
     }
-    ReactDOM.render(
-      React.createElement(RadioOptionSetControl, {
-        choices: this.contextObj.parameters.OptionsetColumn.attributes?.Options,
-        selected: this.contextObj.parameters.OptionsetColumn.raw,
-        isMasked: false,
-        isDisabled: false,
-        notifyChange: this.onChange,
-        theme: "webLightTheme",
-        mode: displayMode,
-      } as IRadioOptionSetProps),
-      this.containerObj
-    );
+    // @ts-ignore
+    let isLoading: boolean = context.parameters.OptionsetColumn.isPropertyLoading;
+
+    if (isLoading) {
+      console.log("OptionsetColumn ", this.lockField, context.parameters.OptionsetColumn);
+    } else {
+      if (this.isFirstTimeLoad) {
+        this.isFirstTimeLoad = false;
+        if (this.contextObj.parameters.lockField.raw.toLowerCase() === "true" && this.contextObj.parameters.OptionsetColumn.raw !== null) {
+          this.lockField = true;
+        }
+      }
+    }
+
+    if (!this.root) {
+      this.root = createRoot(this.containerObj);
+    }
+
+    if (!isLoading) {
+      this.root.render(
+        React.createElement(RadioOptionSetControl, {
+          choices: this.contextObj.parameters.OptionsetColumn.attributes?.Options,
+          selected: this.contextObj.parameters.OptionsetColumn.raw,
+          isMasked: false,
+          isDisabled: this.lockField,
+          notifyChange: this.onChange,
+          theme: "webLightTheme",
+          mode: displayMode,
+        } as IRadioOptionSetProps)
+      );
+    }
   }
 
   /**
@@ -71,6 +98,8 @@ export class RadioOptionSet implements ComponentFramework.StandardControl<IInput
    */
   public destroy(): void {
     // Add code to cleanup control if necessary
-    ReactDOM.unmountComponentAtNode(this.containerObj);
+    if (this.root) {
+      this.root.unmount();
+    }
   }
 }

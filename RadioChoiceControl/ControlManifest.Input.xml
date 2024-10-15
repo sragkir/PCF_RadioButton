@@ -23,6 +23,10 @@
         <value name="Horizontal" display-name-key="Horizontal Display">horizontal</value>
         <value name="Vertical" display-name-key="Vertical Display">vertical</value>
     </property>
+    <property name="lockField" display-name-key="Lock Field" description-key="Lock Field is having value" of-type="Enum" usage="input" required="false" >
+        <value name="True" display-name-key="Lock the Field">true</value>
+        <value name="False" display-name-key="Dont Lock the Field">false</value>
+    </property>
     <!--
       Property node's of-type attribute can be of-type-group attribute.
       Example:
