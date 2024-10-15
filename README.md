@@ -1,7 +1,12 @@
 # PCF_RadioButton
 
 PCF Control for choices to display as radio button
+Command to create pcf control
+1) Create folder
+2) cd folder
+3) pac pcf init -n memberpickerreact -ns memberpickerreactNS -t field -fw react -npm (fw is react or standard)
 
+   
 Commands to publish
 1) Create Solution folder mkdir Solution
 2) cd Solution
